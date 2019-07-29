@@ -1,6 +1,33 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	_ "github.com/lib/pq"
+)
+
+type API struct {
+	Message string "json:message"
+}
+
+func main() {
+	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
+		message := API{"Hello, world!"}
+		output, err := json.Marshal(message)
+		if err != nil {
+			fmt.Println("Algo salió mal")
+		}
+		fmt.Println("hering...")
+		fmt.Println(string(output))
+	})
+	http.ListenAndServe(":8090", nil)
+}
+
+/*package main
+
+import (
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -39,21 +66,21 @@ func check(e error) {
 	}
 }
 func main() {
-	/*file, err := os.Open(var text.txtvar )
+	// file, err := os.Open(var text.txtvar )
 
-	var b = make([]byte, 500)
-	var read int
-	read, err = file.Read(b)
-	check(err)
-	file.Close()
+	// var b = make([]byte, 500)
+	// var read int
+	// read, err = file.Read(b)
+	// check(err)
+	// file.Close()
 
-	fmt.Printf(var hello, world\n %v\nvar , string(b[:read]))
-	var x int
-	for x = 0; x < 10; x++ {
-		if x%2 == 0 {
-			fmt.Printf(var %v  Test \nvar , x)
-		}
-	}*/
+	// fmt.Printf(var hello, world\n %v\nvar , string(b[:read]))
+	// var x int
+	// for x = 0; x < 10; x++ {
+	// 	if x%2 == 0 {
+	// 		fmt.Printf(var %v  Test \nvar , x)
+	// 	}
+	// }
 	url := "https://api.ssllabs.com/api/v3/analyze?host=truora.com"
 	fmt.Println("URL:>", url)
 
@@ -76,3 +103,4 @@ func main() {
 	json.Unmarshal([]byte(string(body)), data)
 	fmt.Printf("Endpoints[0].ServerName: %s\n", data.Endpoints[0].ServerName)
 }
+*/
