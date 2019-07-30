@@ -13,23 +13,22 @@ func init() {
 }
 func Test() {
 	// Connect to the "bank" database.
-	db, err := sql.Open("postgres", "postgresql://maxroach@127.0.0.1:8080/bank?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/bank?sslmode=disable")
 	if err != nil {
 		log.Fatal("error connecting to the database: ", err)
 	}
-	/*
-		// Create the "accounts" table.
-		if _, err := db.Exec(
-			"CREATE TABLE IF NOT EXISTS accounts (id INT PRIMARY KEY, balance INT)"); err != nil {
-			log.Fatal(err)
-		}
 
-		// Insert two rows into the "accounts" table.
-		if _, err := db.Exec(
-			"INSERT INTO accounts (id, balance) VALUES (1, 1000), (2, 250)"); err != nil {
-			log.Fatal(err)
-		}
-	*/
+	// Create the "accounts" table.
+	if _, err := db.Exec(
+		"CREATE TABLE IF NOT EXISTS accounts (id INT PRIMARY KEY, balance INT)"); err != nil {
+		log.Fatal(err)
+	}
+
+	// Insert two rows into the "accounts" table.
+	if _, err := db.Exec(
+		"INSERT INTO accounts (id, balance) VALUES (1, 1000), (2, 250)"); err != nil {
+		log.Fatal(err)
+	}
 
 	// Print out the balances.
 	rows, err := db.Query("SELECT id, balance FROM accounts")

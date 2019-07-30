@@ -33,8 +33,8 @@ func main() {
 	// 	}
 	// }
 
-	//Test()
-	One("truora.com")
+	Test()
+	//One("truora.com")
 	//getOwner("truora.com")
 	panic(0)
 
