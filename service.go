@@ -32,7 +32,7 @@ type Result struct {
 	TestTime        string
 	EngineVersion   string
 	CriteriaVersion string
-	Endpoints       []Endpoints
+	Endpoints       [3]Endpoints
 }
 type OutServer struct {
 	Address   string
@@ -60,17 +60,24 @@ func getOwner(host string) (country string, woner string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	country = s.Split(string(out), "Registrant Country:")[1]
-	country = s.Split(country, "Registrant Phone:")[0]
-	country = s.Replace(country, " ", "", -1)
+	var a1, a2 = "Registrant Country:", "Registrant Phone:"
+	if s.Contains(string(out), a1) && s.Contains(string(out), a2) {
+		country = s.Split(string(out), a1)[1]
+		country = s.Split(country, a2)[0]
+		country = s.TrimSpace(country)
+	}
+	var b1, b2 = "Reseller:", "Domain Status:"
 
-	woner = s.Split(string(out), "Reseller:")[1]
-	woner = s.Split(woner, "Domain Status:")[0]
-	//woner = s.Replace(woner, " ", "", -1)
+	if s.Contains(string(out), b1) && s.Contains(string(out), b2) {
+		woner = s.Split(string(out), b1)[1]
+		woner = s.Split(woner, b2)[0]
+		woner = s.TrimSpace(woner)
+	}
 
 	return
 }
-func One(host string) {
+
+func One(host string) string {
 
 	url := "https://api.ssllabs.com/api/v3/analyze?host=" + host
 	req, err := http.NewRequest("GET", url, nil)
@@ -91,9 +98,9 @@ func One(host string) {
 	json.Unmarshal([]byte(string(body)), data)
 	fmt.Printf("Endpoints[0].ServerName: %s\n", data.Endpoints[0].ServerName)
 
-	leng_servers := 2 //(data.Endpoints)
+	leng_servers := len(data.Endpoints)
+	//servers := [3]OutServer{}
 	out := &Out{}
-	//servers := [2]OutServer{}
 	//out.Servers = servers
 	country, woner := getOwner(host)
 	for i := 0; i < leng_servers; i++ {
@@ -103,5 +110,10 @@ func One(host string) {
 		out.Servers[i].Country = country
 		out.Servers[i].Owner = woner
 	}
-	fmt.Printf("%v", out)
+	out_json, err := json.Marshal(out)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	return string(out_json)
 }

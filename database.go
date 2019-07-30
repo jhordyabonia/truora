@@ -11,37 +11,40 @@ import (
 func init() {
 
 }
+func Start() {
+
+}
 func Test() {
 	// Connect to the "bank" database.
-	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/bank?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://maxroach@localhost:26257/truora?sslmode=disable")
 	if err != nil {
 		log.Fatal("error connecting to the database: ", err)
 	}
 
-	// Create the "accounts" table.
+	// Create the "truora_whois" table.
 	if _, err := db.Exec(
-		"CREATE TABLE IF NOT EXISTS accounts (id INT PRIMARY KEY, balance INT)"); err != nil {
+		"CREATE TABLE IF NOT EXISTS truora_whois (url varchar(300) PRIMARY KEY, data text)"); err != nil {
 		log.Fatal(err)
 	}
 
 	// Insert two rows into the "accounts" table.
 	if _, err := db.Exec(
-		"INSERT INTO accounts (id, balance) VALUES (1, 1000), (2, 250)"); err != nil {
+		"INSERT INTO truora_whois (url, data) VALUES ('facebook.com', 'empty')"); err != nil {
 		log.Fatal(err)
 	}
 
 	// Print out the balances.
-	rows, err := db.Query("SELECT id, balance FROM accounts")
+	rows, err := db.Query("SELECT url,data FROM truora_whois")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-	fmt.Println("Initial balances:")
+	fmt.Println("datas:")
 	for rows.Next() {
-		var id, balance int
-		if err := rows.Scan(&id, &balance); err != nil {
+		var url, data string
+		if err := rows.Scan(&url, &data); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("%d %d\n", id, balance)
+		fmt.Printf("%s\n %s\n", url, data)
 	}
 }
