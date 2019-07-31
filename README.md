@@ -1,4 +1,4 @@
-# truora
+# Truora
 
 1) Install CockroachDB.
     - wget -qO- https://binaries.cockroachdb.com/cockroach-v19.1.3.linux-amd64.tgz | tar  xvz
@@ -25,3 +25,8 @@
 
 7) Run
     - ./truora
+
+8) Test (To test use browser or postman)
+    - http://<[host]>/api                       Index Api (API Truora-Whois)
+    - http://<[host]>/api/analyce/<[domain]>    Analizer Domain
+    - http://<[host]>/api/list   
