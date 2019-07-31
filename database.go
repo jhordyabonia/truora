@@ -15,7 +15,7 @@ func Init() {
 
 }
 func Start() {
-	db, err = sql.Open("postgres", "postgresql://maxroach@localhost:26257/truora?sslmode=disable")
+	db, err = sql.Open("postgres", "postgresql://jhordy@localhost:26257/truora?sslmode=disable")
 	if err != nil {
 		log.Fatal("error connecting to the database: ", err)
 	}
@@ -76,8 +76,10 @@ func Get(url string) (out Out, errOut bool) {
 		if err := rows.Scan(&url, &data); err != nil {
 			log.Fatal(err)
 		}
-		json.Unmarshal([]byte(data), &out)
-		errOut = false
+		errOut = data == ""
+		if !errOut {
+			json.Unmarshal([]byte(data), &out)
+		}
 
 	}
 	return

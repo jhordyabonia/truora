@@ -7,9 +7,9 @@
 2) Start up Cockroach a secure or insecure local cluster:
     - cockroach start --insecure --background --advertise-host= <[host]>
     - cockroach sql --insecure
-    - >CREATE USER IF NOT EXISTS maxroach;
+    - >CREATE USER IF NOT EXISTS jhordy;
     - >CREATE DATABASE truora;
-    - >GRANT ALL ON DATABASE truora TO maxroach;
+    - >GRANT ALL ON DATABASE truora TO jhordy;
     - >\q
 3) Install Whois
     - sudo apt-get install whois

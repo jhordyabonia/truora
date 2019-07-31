@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -32,7 +31,7 @@ type Result struct {
 	TestTime        string
 	EngineVersion   string
 	CriteriaVersion string
-	Endpoints       [3]Endpoints
+	Endpoints       []Endpoints
 }
 type OutServer struct {
 	Address   string
@@ -41,7 +40,8 @@ type OutServer struct {
 	Owner     string
 }
 type Out struct {
-	Servers            [3]OutServer
+	Servers            []OutServer
+	Servers_changed    bool
 	Ssl_grade          string
 	Previous_ssl_grade string
 	Logo               string
@@ -76,34 +76,37 @@ func getOwner(host string) (country string, woner string) {
 	return
 }
 func scrap(host string) (is_down bool, title string, logo string) {
-	//url := host
-	req, err := http.NewRequest("GET", host, nil)
+	url := "http://" + host
+	req, err := http.NewRequest("GET", url, nil)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		return
 	}
 	defer resp.Body.Close()
-	is_down = !s.Contains("200", resp.Status)
+	is_down = !s.Contains(resp.Status, "200")
 	if is_down {
 		return
 	}
-	body, _ := ioutil.ReadAll(resp.Body)
+	_body, _ := ioutil.ReadAll(resp.Body)
+	body := string(_body)
 	var a1, a2 = "<title>", "</title>"
-	if s.Contains(string(body), a1) && s.Contains(string(body), a2) {
-		title = s.Split(string(body), a1)[1]
+	if s.Contains(body, a1) && s.Contains(body, a2) {
+		title = s.Split(body, a1)[1]
 		title = s.Split(title, a2)[0]
 		title = s.TrimSpace(title)
 	}
-	var b1, b2 = "<link", "type=\"image/x-icon\""
-	if s.Contains(string(body), b1) && s.Contains(string(body), b2) {
-		logo0 := s.Split(string(body), b1)
+	var b1, b2 = "<link", "rel=\"shortcut icon\""
+	if s.Contains(body, b1) && s.Contains(body, b2) {
+		logo0 := s.Split(body, b1)
 		for i := 0; i < len(logo0); i++ {
 			if s.Contains(logo0[i], b2) {
 				logo1 := s.Split(string(logo0[i]), "\"")
 				for ii := 0; ii < len(logo1); ii++ {
 					if s.Contains(logo1[ii], ".png") {
+						logo = logo1[ii]
+					} else if s.Contains(logo1[ii], ".ico") {
 						logo = logo1[ii]
 					}
 				}
@@ -112,7 +115,7 @@ func scrap(host string) (is_down bool, title string, logo string) {
 	}
 	return
 }
-func One(host string) string {
+func One(host string) (out Out) {
 
 	url := "https://api.ssllabs.com/api/v3/analyze?host=" + host
 	req, err := http.NewRequest("GET", url, nil)
@@ -125,31 +128,30 @@ func One(host string) string {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("response Status:", resp.Status)
+	//fmt.Println("response Status:", resp.Status)
 	//fmt.Println("response Headers:" , resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
 	//fmt.Println("response Body:", string(body))
 	data := &Result{}
 	json.Unmarshal([]byte(string(body)), data)
-	fmt.Printf("Endpoints[0].ServerName: %s\n", data.Endpoints[0].ServerName)
+	//fmt.Printf("Endpoints[0].ServerName: %s\n", data.Endpoints[0].ServerName)
 
 	leng_servers := len(data.Endpoints)
-	//servers := [3]OutServer{}
-	out := &Out{}
-	//out.Servers = servers
+	out.Servers = make([]OutServer, leng_servers)
+
 	country, woner := getOwner(host)
 	for i := 0; i < leng_servers; i++ {
+		if out.Ssl_grade == "" {
+			out.Ssl_grade = data.Endpoints[i].Grade
+		}
 		out.Servers[i] = OutServer{}
 		out.Servers[i].Address = data.Endpoints[i].IpAddress
 		out.Servers[i].Ssl_grade = data.Endpoints[i].Grade
+
+		//country, woner := getOwner(data.Endpoints[i].ServerName)
 		out.Servers[i].Country = country
 		out.Servers[i].Owner = woner
 	}
 	out.Is_down, out.Title, out.Logo = scrap(host)
-	out_json, err := json.Marshal(out)
-	if err != nil {
-		fmt.Println(err)
-		return ""
-	}
-	return string(out_json)
+	return out
 }
