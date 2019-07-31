@@ -67,7 +67,6 @@ func getOwner(host string) (country string, woner string) {
 		country = s.TrimSpace(country)
 	}
 	var b1, b2 = "Reseller:", "Domain Status:"
-
 	if s.Contains(string(out), b1) && s.Contains(string(out), b2) {
 		woner = s.Split(string(out), b1)[1]
 		woner = s.Split(woner, b2)[0]
@@ -76,7 +75,43 @@ func getOwner(host string) (country string, woner string) {
 
 	return
 }
+func scrap(host string) (is_down bool, title string, logo string) {
+	//url := host
+	req, err := http.NewRequest("GET", host, nil)
 
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	is_down = !s.Contains("200", resp.Status)
+	if is_down {
+		return
+	}
+	body, _ := ioutil.ReadAll(resp.Body)
+	var a1, a2 = "<title>", "</title>"
+	if s.Contains(string(body), a1) && s.Contains(string(body), a2) {
+		title = s.Split(string(body), a1)[1]
+		title = s.Split(title, a2)[0]
+		title = s.TrimSpace(title)
+	}
+	var b1, b2 = "<link", "type=\"image/x-icon\""
+	if s.Contains(string(body), b1) && s.Contains(string(body), b2) {
+		logo0 := s.Split(string(body), b1)
+		for i := 0; i < len(logo0); i++ {
+			if s.Contains(logo0[i], b2) {
+				logo1 := s.Split(string(logo0[i]), "\"")
+				for ii := 0; ii < len(logo1); ii++ {
+					if s.Contains(logo1[ii], ".png") {
+						logo = logo1[ii]
+					}
+				}
+			}
+		}
+	}
+	return
+}
 func One(host string) string {
 
 	url := "https://api.ssllabs.com/api/v3/analyze?host=" + host
@@ -110,6 +145,7 @@ func One(host string) string {
 		out.Servers[i].Country = country
 		out.Servers[i].Owner = woner
 	}
+	out.Is_down, out.Title, out.Logo = scrap(host)
 	out_json, err := json.Marshal(out)
 	if err != nil {
 		fmt.Println(err)

@@ -6,9 +6,22 @@
 
 2) Start up Cockroach a secure or insecure local cluster:
     - cockroach start --insecure --background --advertise-host= <[host]>
+    - cockroach sql --insecure
+    - >CREATE USER IF NOT EXISTS maxroach;
+    - >CREATE DATABASE truora;
+    - >GRANT ALL ON DATABASE truora TO maxroach;
+    - >\q
+3) Install Whois
+    - sudo apt-get install whois
 
-3) Install library go - Cockroach
+4) Install library go - Cockroach
     - go get -u github.com/lib/pq
 
-4) Install library to go - Router CHI
-    -go get -u github.com/go-chi/chi
+5) Install library to go - Router CHI
+    - go get -u github.com/go-chi/chi
+
+6) Build
+    - go build
+
+7) Run
+    - ./truora

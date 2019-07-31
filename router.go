@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"fmt"
 	"net/http"
@@ -16,16 +17,31 @@ func home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("API Truora-Whois"))
 }
 func List(w http.ResponseWriter, r *http.Request) {
-
-	w.Write([]byte("API list"))
+	list, _ := GetAll()
+	out_json, err := json.Marshal(list)
+	if err != nil {
+		fmt.Println(err)
+	}
+	w.Write([]byte(fmt.Sprintf("%v", string(out_json))))
 }
 
 func Analyce(w http.ResponseWriter, r *http.Request) {
 
 	url := chi.URLParam(r, "url")
+	_data, err := Get(url)
+	var data string
+	if err {
+		tmp, err := json.Marshal(_data)
+		if err != nil {
+			data = string(tmp)
+		}
+	} else {
+		data = One(url)
+	}
+	Insert(url, data)
+	fmt.Fprint(w, data)
 	//w.Write([]byte("API Analice\n"))
 	//w.Write([]byte(fmt.Sprintf("Url %v", url)))
-	fmt.Fprint(w, One(url))
 }
 func Rutes() {
 	r := chi.NewRouter()
@@ -36,3 +52,4 @@ func Rutes() {
 	})
 	http.ListenAndServe(":8090", r)
 }
+*/
