@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os/exec"
 	s "strings"
+	//"honnef.co/go/js/dom"
 )
 
 type Endpoints struct {
@@ -21,6 +22,11 @@ type Endpoints struct {
 	Duration          string
 	Delegation        string
 }
+
+/*
+Represantacion de la estructura de datos resultados de  la  api
+https://api.ssllabs.com/api/v3/analyze
+*/
 type Result struct {
 	Host            string
 	Port            string
@@ -39,6 +45,10 @@ type OutServer struct {
 	Country   string
 	Owner     string
 }
+
+/*
+represeantacion de los datos, que conforman el detalle de cada dominio
+*/
 type Out struct {
 	Servers            []OutServer
 	Servers_changed    bool
@@ -49,11 +59,54 @@ type Out struct {
 	Is_down            bool
 }
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
+/*
+Lee del html de la pagina alojada en 'host', los datos
+logo, title y si esta o no en linea
+*/
+func Html(host string) (is_down bool, title string, logo string) {
+	/*html, is_down := GetPage(host)
+	document := dom.GetWindow().FrameElement()
+	document.SetInnerHTML(html)
+	titleElement := document.QuerySelector("title")
+	title := titleElement.OuterHTML()
+	fmt.Println(title)*/
+	return
 }
+
+/*
+Compara si el objeto in1 traido del web-service,
+a cambiado con respecto al objeto almacenado en base de datos
+*/
+func Compare(in1, in2 Out) (out Out) {
+	out = in1
+	out.Servers_changed = len(in1.Servers) != len(in2.Servers)
+
+	if in1.Ssl_grade != in2.Ssl_grade {
+		out.Ssl_grade = in2.Ssl_grade
+		out.Servers_changed = true
+	}
+	out.Previous_ssl_grade = in2.Ssl_grade
+
+	if !out.Servers_changed {
+		for i := 0; i < len(out.Servers); i++ {
+			if in1.Servers[i].Address != in2.Servers[i].Address {
+				out.Servers_changed = true
+			} else if in1.Servers[i].Ssl_grade != in2.Servers[i].Ssl_grade {
+				out.Servers_changed = true
+			} else if in1.Servers[i].Country != in2.Servers[i].Country {
+				out.Servers_changed = true
+			} else if in1.Servers[i].Owner != in2.Servers[i].Owner {
+				out.Servers_changed = true
+			}
+		}
+	}
+	return
+}
+
+/*
+Ejecuta el comando whois y extrae los valores de
+country y woner, para el host, pasado en el paramtro
+*/
 func getOwner(host string) (country string, woner string) {
 
 	out, err := exec.Command("whois", host).Output()
@@ -75,8 +128,12 @@ func getOwner(host string) (country string, woner string) {
 
 	return
 }
-func scrap(host string) (is_down bool, title string, logo string) {
-	url := "http://" + host
+
+/*
+Obtine el html resultante, de una direccion web (url)
+*/
+func GetPage(url string) (body string, errOut bool) {
+	url = "http://" + s.Replace(url, "http://", "", 1)
 	req, err := http.NewRequest("GET", url, nil)
 
 	client := &http.Client{}
@@ -85,12 +142,18 @@ func scrap(host string) (is_down bool, title string, logo string) {
 		return
 	}
 	defer resp.Body.Close()
-	is_down = !s.Contains(resp.Status, "200")
-	if is_down {
+	errOut = !s.Contains(resp.Status, "200")
+	if errOut {
 		return
 	}
 	_body, _ := ioutil.ReadAll(resp.Body)
-	body := string(_body)
+	body = string(_body)
+	return
+}
+
+/* Sustituto temporal de Html*/
+func scrap(host string) (is_down bool, title string, logo string) {
+	body, is_down := GetPage(host)
 	var a1, a2 = "<title>", "</title>"
 	if s.Contains(body, a1) && s.Contains(body, a2) {
 		title = s.Split(body, a1)[1]
@@ -115,8 +178,7 @@ func scrap(host string) (is_down bool, title string, logo string) {
 	}
 	return
 }
-func One(host string) (out Out) {
-
+func ApiAnalyce(host string) (out Out) {
 	url := "https://api.ssllabs.com/api/v3/analyze?host=" + host
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("Content-Type", "application/json")
@@ -128,13 +190,9 @@ func One(host string) (out Out) {
 	}
 	defer resp.Body.Close()
 
-	//fmt.Println("response Status:", resp.Status)
-	//fmt.Println("response Headers:" , resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
-	//fmt.Println("response Body:", string(body))
 	data := &Result{}
 	json.Unmarshal([]byte(string(body)), data)
-	//fmt.Printf("Endpoints[0].ServerName: %s\n", data.Endpoints[0].ServerName)
 
 	leng_servers := len(data.Endpoints)
 	out.Servers = make([]OutServer, leng_servers)

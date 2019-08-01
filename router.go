@@ -8,14 +8,18 @@ import (
 	"github.com/go-chi/chi"
 )
 
+/*pagina resultados extensos*/
 func paginate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
 	})
 }
+
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("API Truora-Whois"))
 }
+
+/*Lista los dominios previamente consultados*/
 func List(w http.ResponseWriter, r *http.Request) {
 	list, _ := GetAll()
 	type items struct {
@@ -27,38 +31,17 @@ func List(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	w.Write([]byte(fmt.Sprintf("%v", string(out_json))))
-}
-func compare(in1, in2 Out) (out Out) {
-	out = in1
-	out.Servers_changed = false
-	for i := 0; i < len(out.Servers); i++ {
-		if in1.Servers[i].Address != in2.Servers[i].Address {
-			out.Servers_changed = true
-		}
-		if in1.Servers[i].Ssl_grade != in2.Servers[i].Ssl_grade {
-			out.Servers_changed = true
-		}
-		if in1.Servers[i].Country != in2.Servers[i].Country {
-			out.Servers_changed = true
-		}
-		if in1.Servers[i].Owner != in2.Servers[i].Owner {
-			out.Servers_changed = true
-		}
-	}
-	if in1.Ssl_grade != in2.Ssl_grade {
-		out.Ssl_grade = in2.Ssl_grade
-		out.Servers_changed = true
-	}
-	out.Previous_ssl_grade = in2.Ssl_grade
-	return
-}
-func Analyce(w http.ResponseWriter, r *http.Request) {
 
+	//fmt.Fprint(w,"API List\n")
+}
+
+/*Analice un dominio*/
+func Analyce(w http.ResponseWriter, r *http.Request) {
 	url := chi.URLParam(r, "url")
-	out := One(url)
+	out := ApiAnalyce(url)
 	old, err0 := Get(url)
 	if !err0 {
-		out = compare(out, old)
+		out = Compare(out, old)
 	}
 	tmp, err := json.Marshal(&out)
 	if err != nil {

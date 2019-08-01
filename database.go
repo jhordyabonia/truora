@@ -14,6 +14,8 @@ var err error = nil
 func Init() {
 
 }
+
+/*Inicializar base de datos*/
 func Start() {
 	db, err = sql.Open("postgres", "postgresql://jhordy@localhost:26257/truora?sslmode=disable")
 	if err != nil {
@@ -24,6 +26,8 @@ func Start() {
 		log.Fatal(err)
 	}
 }
+
+/*Obtener todos los registros */
 func GetAll() (outList []string, out []Out) {
 	if db == nil {
 		Start()
@@ -61,6 +65,7 @@ func GetAll() (outList []string, out []Out) {
 	return
 }
 
+/*Obtener un registro*/
 func Get(url string) (out Out, errOut bool) {
 	if db == nil {
 		Start()
@@ -84,6 +89,8 @@ func Get(url string) (out Out, errOut bool) {
 	}
 	return
 }
+
+/*Insertar o alterar un registro*/
 func Insert(url string, data string) {
 	if db == nil {
 		Start()
