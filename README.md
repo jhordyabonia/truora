@@ -27,6 +27,6 @@
     - ./truora
 
 8) Test (To test use browser or postman)
-    - http://<[host]>/api                       Index Api (API Truora-Whois)
-    - http://<[host]>/api/analyce/<[domain]>    Analizer Domain
-    - http://<[host]>/api/list   
+    - http://<[host]>:8090/api                       Index Api (API Truora-Whois)
+    - http://<[host]>:8090/api/analyce/<[domain]>    Analizer Domain
+    - http://<[host]>:8090/api/list   
