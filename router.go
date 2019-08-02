@@ -14,6 +14,17 @@ func paginate(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+func header(w http.ResponseWriter){
+	//w.Header().Add("Date ","Fri, 02 Aug 2019 18:36:12 GMT")
+	w.Header().Add("Server ","Application/go (Ubuntu)")
+	w.Header().Add("Vary ","Accept-Encoding")
+	w.Header().Add("Content-Encoding ","gzip")
+	//w.Header().Add("Content-Length","464")
+	w.Header().Add("Keep-Alive", "timeout=5, max=99")
+	w.Header().Add("Connection", "Keep-Alive")
+	//w.Header().Add("Content-Type "text/html;charset=UTF-8"
+	w.Header().Add("Content-Type", "application/json; charset=utf-8")
+}
 
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("API Truora-Whois"))
@@ -30,6 +41,7 @@ func List(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	header(w)
 	w.Write([]byte(fmt.Sprintf("%v", string(out_json))))
 
 	//fmt.Fprint(w,"API List\n")
@@ -49,6 +61,8 @@ func Analyce(w http.ResponseWriter, r *http.Request) {
 	}
 	data := string(tmp)
 	Insert(url, data)
+
+	header(w)
 	fmt.Fprint(w, data)
 	//fmt.Fprint(w,"API Analice\n")
 	//fmt.Fprint(w, "Url ", url)
